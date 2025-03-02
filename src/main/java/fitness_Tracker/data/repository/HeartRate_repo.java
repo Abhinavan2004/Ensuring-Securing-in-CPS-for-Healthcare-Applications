@@ -12,5 +12,4 @@ public interface HeartRate_repo extends JpaRepository <HeartRate_entity, Integer
     List<HeartRate_entity> findByStartTime(Date startTime);
     List<HeartRate_entity> findByEndTime(Date endTime);
     List<HeartRate_entity> findByHeartRate(int heartRate);
-
 }

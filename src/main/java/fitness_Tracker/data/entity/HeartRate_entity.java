@@ -1,10 +1,7 @@
 package fitness_Tracker.data.entity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
@@ -13,47 +10,37 @@ public class HeartRate_entity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "Patient Id")
+    @Column(name = "id")
+    private Long id;
+
+    @Column(name = "patient_id")
     private int patientId;
 
-    @Column(name = "Start Time")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "start_time")
     private Date startTime;
 
-    @Column(name = "End Time")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "end_time")
     private Date endTime;
 
-    @Column(name = "Heart Rate")
+    @Column(name = "heart_rate")
     private int heartRate;
 
-    public int getPatientId() {
-        return patientId;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setPatientId(int patientId) {
-        this.patientId = patientId;
-    }
+    public int getPatientId() { return patientId; }
+    public void setPatientId(int patientId) { this.patientId = patientId; }
 
-    public Date getStartTime() {
-        return startTime;
-    }
+    public Date getStartTime() { return startTime; }
+    public void setStartTime(Date startTime) { this.startTime = startTime; }
 
-    public void setStartTime(Date startTime) {
-        this.startTime = startTime;
-    }
+    public Date getEndTime() { return endTime; }
+    public void setEndTime(Date endTime) { this.endTime = endTime; }
 
-    public Date getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(Date endTime) {
-        this.endTime = endTime;
-    }
-
-    public int getHeartRate() {
-        return heartRate;
-    }
-
-    public void setHeartRate(int heartRate) {
-        this.heartRate = heartRate;
-    }
+    public int getHeartRate() { return heartRate; }
+    public void setHeartRate(int heartRate) { this.heartRate = heartRate; }
 }

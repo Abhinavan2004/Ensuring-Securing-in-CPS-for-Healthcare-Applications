@@ -35,6 +35,10 @@ public class HeartRate_service {
         return heartRateRepo.findByHeartRate(heartRate);
     }
 
+    public void postHeartRate(HeartRate_entity heartRateEntity){
+        heartRateRepo.save(heartRateEntity);
+    }
+
     public void postHeartRateData(HeartRate_entity heartRateEntity){
         heartRateRepo.save(heartRateEntity);
     }
