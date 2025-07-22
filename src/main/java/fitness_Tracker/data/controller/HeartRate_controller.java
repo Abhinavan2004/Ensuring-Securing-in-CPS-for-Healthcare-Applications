@@ -49,7 +49,7 @@ public class HeartRate_controller {
 
     /**
      * Handles both:
-     * 1) AWS IoT Core validation by echoing back the "challenge" token
+     * 1) AWS IoT Core validatin by echoing back the "challenge" token
      * 2) Normal heart rate data ingestion
      */
     @PostMapping("/data")
