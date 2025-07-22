@@ -1,5 +1,4 @@
 package fitness_Tracker.data.controller;
-
 import fitness_Tracker.data.entity.HeartRate_entity;
 import fitness_Tracker.data.service.HeartRate_service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,7 @@ public class HeartRate_controller {
     @Autowired
     private HeartRate_service heartRateService;
 
-    @GetMapping("/getPatientId")
+    @GetMapping("/getPatientIdForHR")
     public List<HeartRate_entity> getPatientId(@RequestParam int patientId){
         return heartRateService.getPatientId(patientId);
     }

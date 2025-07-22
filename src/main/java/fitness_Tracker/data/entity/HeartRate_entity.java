@@ -13,7 +13,7 @@ public class HeartRate_entity {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "patient_id")
+    @Column(name = "patient_id", unique = true)
     private int patientId;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
