@@ -3,6 +3,8 @@ package fitness_Tracker.data.service;
 
 import fitness_Tracker.data.entity.HeartRate_entity;
 import fitness_Tracker.data.repository.HeartRate_repo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +13,7 @@ import java.util.List;
 
 @Service
 public class HeartRate_service {
+    private static final Logger logger = LoggerFactory.getLogger(HeartRate_service.class);
 
     @Autowired
     private HeartRate_repo heartRateRepo;
@@ -40,6 +43,7 @@ public class HeartRate_service {
     }
 
     public void postHeartRateData(HeartRate_entity heartRateEntity){
+        logger.info("Saving heart rate data: {}", heartRateEntity);
         heartRateRepo.save(heartRateEntity);
     }
 
