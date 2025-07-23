@@ -54,6 +54,7 @@ public class HeartRate_controller {
      */
     @PostMapping("/data")
     public ResponseEntity<String> postHeartRateData(@RequestBody String rawBody) {
+        System.out.println(">>> Received rawBody: " + rawBody);
         try {
             JsonNode json = OBJECT_MAPPER.readTree(rawBody);
             // 1. AWS IoT confirmation handshake
