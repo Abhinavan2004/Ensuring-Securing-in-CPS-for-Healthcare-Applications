@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
 
@@ -57,19 +59,48 @@ public class HeartRate_controller {
         System.out.println(">>> Received rawBody: " + rawBody);
         try {
             JsonNode json = OBJECT_MAPPER.readTree(rawBody);
-            // 1. AWS IoT confirmation handshake
+
+            // 1) AWS IoT handshake
             if (json.has("challenge") && json.get("challenge").isTextual()) {
-                String token = json.get("challenge").asText();
-                return ResponseEntity.ok(token);
+                return ResponseEntity.ok(json.get("challenge").asText());
             }
 
-            // 2. Normal heart rate data
-            HeartRate_entity hr = OBJECT_MAPPER.treeToValue(json, HeartRate_entity.class);
+            // 2) Normal heart rate ingestion
+            // -- Extract primitive fields
+            int patientId   = json.get("patientId").asInt();
+            int heartRate   = json.get("heartRate").asInt();
+            String startIso = json.get("startTime").asText();
+            String endIso   = json.get("endTime").asText();
+
+            Instant startInst = Instant.parse(startIso);
+            Instant endInst   = Instant.parse(endIso);
+            Date startDate    = Date.from(startInst);
+            Date endDate      = Date.from(endInst);
+
+            // -- Build your entity
+            HeartRate_entity hr = new HeartRate_entity();
+            hr.setPatientId(patientId);
+            hr.setHeartRate(heartRate);
+            hr.setStartTime(startDate);
+            hr.setEndTime(endDate);
+
+            // -- Persist
             heartRateService.postHeartRateData(hr);
             return ResponseEntity.ok("Heart Rate data successfully posted");
 
-        } catch (IOException e) {
-            return ResponseEntity.badRequest().body("Invalid JSON: " + e.getMessage());
+        } catch (DateTimeParseException dtpe) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Invalid timestamp format: " + dtpe.getParsedString());
+        } catch (IOException ioe) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Malformed JSON: " + ioe.getMessage());
+        } catch (Exception ex) {
+            ex.printStackTrace();  // log the full stacktrace
+            return ResponseEntity
+                    .status(500)
+                    .body("Server Error: " + ex.getMessage());
         }
     }
 }
