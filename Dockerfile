@@ -1,13 +1,15 @@
-# Step 1: Build stage
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+# -------- Stage 1: Build the application --------
+FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
-RUN mvn clean package -DskipTests
+COPY . .
+RUN chmod +x mvnw
+RUN ./mvnw clean package -DskipTests
 
-# Step 2: Run stage
-FROM eclipse-temurin:17-jdk
+# -------- Stage 2: Run the application --------
+FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+
+# Use the exact jar name
+COPY --from=build /app/target/data-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
