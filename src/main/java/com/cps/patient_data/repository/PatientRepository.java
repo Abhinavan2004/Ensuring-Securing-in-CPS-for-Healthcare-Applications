@@ -17,6 +17,4 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     List<Patient> findAllByName(String name);
     List<Patient> findByDate(LocalDate date);
     List<Patient> findAllByDateAndName(LocalDate date, String name);
-
-    Optional<Patient> findTopByPatientIdOrderByDateDesc(Long patientId);
 }
