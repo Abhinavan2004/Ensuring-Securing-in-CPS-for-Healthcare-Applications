@@ -29,9 +29,9 @@ public class Patient {
 
     @Transient
     private static final List<String> NAMES = List.of(
-            "Devansh",
             "Abhinav",
             "Atharva",
+            "Devansh",
             "Om",
             "Parth"
     );
