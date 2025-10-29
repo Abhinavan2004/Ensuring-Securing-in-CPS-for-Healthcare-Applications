@@ -55,7 +55,7 @@ public class PatientService {
 
         Long patientId = patientData.getPatientId();
         LocalDateTime now = LocalDateTime.now();
-        final long MIN_SECONDS = 20L;
+        final long REQUIRED_SECONDS = 20L;
 
         if (patientId != null) {
             Optional<Patient> lastOpt = patientRepository.findTopByPatientIdOrderByDateDesc(patientId);
@@ -64,10 +64,11 @@ public class PatientService {
                 LocalDateTime lastTime = last.getDate();
                 if (lastTime != null) {
                     long secondsSince = Duration.between(lastTime, now).getSeconds();
-                    if (secondsSince < MIN_SECONDS) {
-                        // Reject — a dummy attacker attempted to send a value earlier than 20s interval
+                    // ACCEPT only if elapsed time is exactly 20 seconds
+                    if (secondsSince != REQUIRED_SECONDS) {
                         throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                                "Reading rejected: must be at least " + MIN_SECONDS + " seconds apart. (Elapsed: " + secondsSince + "s)");
+                                "Reading rejected: must be exactly " + REQUIRED_SECONDS +
+                                        " seconds apart. (Elapsed: " + secondsSince + "s)");
                     }
                 }
             }
@@ -77,4 +78,5 @@ public class PatientService {
         patientData.setDate(now);
         patientRepository.save(patientData);
     }
+
 }
