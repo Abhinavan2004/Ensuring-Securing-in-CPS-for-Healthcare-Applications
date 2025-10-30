@@ -18,7 +18,6 @@ public class PatientController {
     @Autowired
     private PatientService patientService;
 
-    // Secure values loaded from environment variables
     @Value("${app.security.nonce}")
     private String validNonce;
 
@@ -50,29 +49,43 @@ public class PatientController {
         return patientService.getAllPatients(date, name);
     }
 
+    // ==== Custom cipher function (must match ESP32) ====
+    private String computeCustomCipher(String nonce, String mac) {
+        String normalizedMac = mac.replace(":", "").toLowerCase();
+        String combined = nonce + "|" + normalizedMac;
+        StringBuilder cipher = new StringBuilder();
+
+        for (int i = 0; i < combined.length(); i++) {
+            int b = combined.charAt(i);
+            int offset = (i * 31) & 0xFF;
+            int transformed = ((b + offset) & 0xFF) ^ 0xA5;
+            cipher.append(String.format("%02x", transformed));
+        }
+
+        return cipher.toString();
+    }
+
     @PostMapping("/postPatientData")
     public String postPatientData(
             @RequestBody Patient patientData,
             HttpServletRequest request,
-            @RequestHeader(value = "x-nonce", required = false) String requestNonce,
-            @RequestHeader(value = "X-Device-MAC", required = false) String deviceMacHeader) {
+            @RequestHeader(value = "X-Device-Cipher", required = false) String deviceCipher) {
 
         String remoteIp = request.getRemoteAddr();
 
-        // 1️⃣ Validate Nonce
-        if (requestNonce == null || !requestNonce.equals(validNonce)) {
-            System.out.println("🚫 Potential attack detected: Invalid nonce from IP " + remoteIp);
-            return "Potential attack detected: Invalid or missing nonce.";
+        if (deviceCipher == null) {
+            System.out.println("🚫 Missing cipher from IP " + remoteIp);
+            return "Unauthorized: Missing device cipher.";
         }
 
-        // 2️⃣ Validate Device MAC
-        if (deviceMacHeader == null || !deviceMacHeader.trim().equalsIgnoreCase(allowedDeviceMac.trim())) {
-            System.out.println("🚫 Potential attack detected: Invalid or missing MAC from IP " + remoteIp);
-            return "Potential attack detected: Invalid or missing device MAC.";
+        String expectedCipher = computeCustomCipher(validNonce, allowedDeviceMac);
+
+        if (!deviceCipher.trim().equalsIgnoreCase(expectedCipher.trim())) {
+            System.out.println("🚫 Invalid cipher from IP " + remoteIp);
+            return "Unauthorized: Invalid device cipher.";
         }
 
-        // 3️⃣ If both checks pass → save data
-        System.out.println("✅ Verified request from device " + deviceMacHeader + " (IP: " + remoteIp + ")");
+        System.out.println("✅ Verified cipher from IP: " + remoteIp);
         patientService.postHeartRate(patientData);
         return "Data successfully saved from verified device.";
     }
