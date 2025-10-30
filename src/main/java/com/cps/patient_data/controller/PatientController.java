@@ -2,10 +2,11 @@ package com.cps.patient_data.controller;
 
 import com.cps.patient_data.entity.Patient;
 import com.cps.patient_data.service.PatientService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +18,8 @@ public class PatientController {
     @Autowired
     private PatientService patientService;
 
-    private static final String ESP32_IP = "172.71.198.149";
+    @Value("${app.security.nonce}")
+    private String validNonce;
 
     @GetMapping("/getPatient/Id")
     public Optional<Patient> getPatientById(@RequestParam Long patient_id) {
@@ -45,16 +47,20 @@ public class PatientController {
     }
 
     @PostMapping("/postPatientData")
-    public String postPatientData(@RequestBody Patient patientData, HttpServletRequest request) {
+    public String postPatientData(
+            @RequestBody Patient patientData,
+            HttpServletRequest request,
+            @RequestHeader(value = "x-nonce", required = false) String requestNonce) {
+
         String clientIp = request.getRemoteAddr();
 
-        if (!ESP32_IP.equals(clientIp)) {
-            System.out.println("⚠️ Unauthorized data attempt from IP: " + clientIp);
-            return "Access denied: Unauthorized IP (" + clientIp + "). Data not saved.";
+        if (requestNonce == null || !requestNonce.equals(validNonce)) {
+            System.out.println("🚫 Unauthorized request: Invalid or missing nonce from IP " + clientIp);
+            return "Access denied: Invalid nonce. Data not saved.";
         }
 
-        System.out.println("✅ Data accepted from ESP32 IP: " + clientIp);
+        System.out.println("✅ Data accepted from ESP32. IP: " + clientIp + " | Nonce verified.");
         patientService.postHeartRate(patientData);
-        return "Data successfully saved from ESP32 IP: " + clientIp;
+        return "Data successfully saved from verified ESP32.";
     }
 }
