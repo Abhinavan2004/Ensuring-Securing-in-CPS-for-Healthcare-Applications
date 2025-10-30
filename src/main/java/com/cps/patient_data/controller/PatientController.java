@@ -17,7 +17,7 @@ public class PatientController {
     @Autowired
     private PatientService patientService;
 
-    private static final String ESP32_IP = "10.229.218.238";
+    private static final String ESP32_IP = "172.71.198.149";
 
     @GetMapping("/getPatient/Id")
     public Optional<Patient> getPatientById(@RequestParam Long patient_id) {
