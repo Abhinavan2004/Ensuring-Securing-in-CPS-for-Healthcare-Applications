@@ -18,8 +18,12 @@ public class PatientController {
     @Autowired
     private PatientService patientService;
 
+    // Secure values loaded from environment variables
     @Value("${app.security.nonce}")
     private String validNonce;
+
+    @Value("${app.device.mac}")
+    private String allowedDeviceMac;
 
     @GetMapping("/getPatient/Id")
     public Optional<Patient> getPatientById(@RequestParam Long patient_id) {
@@ -36,12 +40,12 @@ public class PatientController {
         return patientService.getPatientByDate(date);
     }
 
-    @GetMapping("getPatients/byName")
+    @GetMapping("/getPatients/byName")
     public Patient getPatientByName(@RequestParam String name) {
         return patientService.getPatientName(name);
     }
 
-    @GetMapping("getAllPatients")
+    @GetMapping("/getAllPatients")
     public List<Patient> getAllPatients(@RequestParam LocalDate date, @RequestParam String name) {
         return patientService.getAllPatients(date, name);
     }
@@ -50,17 +54,26 @@ public class PatientController {
     public String postPatientData(
             @RequestBody Patient patientData,
             HttpServletRequest request,
-            @RequestHeader(value = "x-nonce", required = false) String requestNonce) {
+            @RequestHeader(value = "x-nonce", required = false) String requestNonce,
+            @RequestHeader(value = "X-Device-MAC", required = false) String deviceMacHeader) {
 
-        String clientIp = request.getRemoteAddr();
+        String remoteIp = request.getRemoteAddr();
 
+        // 1️⃣ Validate Nonce
         if (requestNonce == null || !requestNonce.equals(validNonce)) {
-            System.out.println("🚫 Unauthorized request: Invalid or missing nonce from IP " + clientIp);
-            return "Access denied: Invalid nonce. Data not saved.";
+            System.out.println("🚫 Potential attack detected: Invalid nonce from IP " + remoteIp);
+            return "Potential attack detected: Invalid or missing nonce.";
         }
 
-        System.out.println("✅ Data accepted from ESP32. IP: " + clientIp + " | Nonce verified.");
+        // 2️⃣ Validate Device MAC
+        if (deviceMacHeader == null || !deviceMacHeader.trim().equalsIgnoreCase(allowedDeviceMac.trim())) {
+            System.out.println("🚫 Potential attack detected: Invalid or missing MAC from IP " + remoteIp);
+            return "Potential attack detected: Invalid or missing device MAC.";
+        }
+
+        // 3️⃣ If both checks pass → save data
+        System.out.println("✅ Verified request from device " + deviceMacHeader + " (IP: " + remoteIp + ")");
         patientService.postHeartRate(patientData);
-        return "Data successfully saved from verified ESP32.";
+        return "Data successfully saved from verified device.";
     }
 }
