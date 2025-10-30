@@ -5,6 +5,7 @@ import com.cps.patient_data.service.PatientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +16,8 @@ public class PatientController {
 
     @Autowired
     private PatientService patientService;
+
+    private static final String ESP32_IP = "10.229.218.238";
 
     @GetMapping("/getPatient/Id")
     public Optional<Patient> getPatientById(@RequestParam Long patient_id) {
@@ -42,7 +45,16 @@ public class PatientController {
     }
 
     @PostMapping("/postPatientData")
-    public void postPatientData(@RequestBody Patient patientData) {
+    public String postPatientData(@RequestBody Patient patientData, HttpServletRequest request) {
+        String clientIp = request.getRemoteAddr();
+
+        if (!ESP32_IP.equals(clientIp)) {
+            System.out.println("⚠️ Unauthorized data attempt from IP: " + clientIp);
+            return "Access denied: Unauthorized IP (" + clientIp + "). Data not saved.";
+        }
+
+        System.out.println("✅ Data accepted from ESP32 IP: " + clientIp);
         patientService.postHeartRate(patientData);
+        return "Data successfully saved from ESP32 IP: " + clientIp;
     }
 }
