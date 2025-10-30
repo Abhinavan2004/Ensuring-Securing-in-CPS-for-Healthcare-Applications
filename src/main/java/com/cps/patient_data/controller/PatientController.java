@@ -49,7 +49,6 @@ public class PatientController {
         return patientService.getAllPatients(date, name);
     }
 
-    // ==== Custom cipher function (must match ESP32) ====
     private String computeCustomCipher(String nonce, String mac) {
         String normalizedMac = mac.replace(":", "").toLowerCase();
         String combined = nonce + "|" + normalizedMac;
@@ -74,18 +73,18 @@ public class PatientController {
         String remoteIp = request.getRemoteAddr();
 
         if (deviceCipher == null) {
-            System.out.println("🚫 Missing cipher from IP " + remoteIp);
+            System.out.println("🚫 Missing cipher from IP " + remoteIp + "Potential attack detected");
             return "Unauthorized: Missing device cipher.";
         }
 
         String expectedCipher = computeCustomCipher(validNonce, allowedDeviceMac);
 
         if (!deviceCipher.trim().equalsIgnoreCase(expectedCipher.trim())) {
-            System.out.println("🚫 Invalid cipher from IP " + remoteIp);
+            System.out.println("🚫 Invalid cipher from IP " + remoteIp + "Potential attack detected");
             return "Unauthorized: Invalid device cipher.";
         }
 
-        System.out.println("✅ Verified cipher from IP: " + remoteIp);
+        System.out.println("✅ Verified cipher from IP: " + remoteIp + "Heart rate successfully saved");
         patientService.postHeartRate(patientData);
         return "Data successfully saved from verified device.";
     }
